@@ -34,7 +34,7 @@ start(Time, ConfigOptions) ->
     Env = SP#sim_params.genetic_ops,
     SimParams = SP#sim_params{extra = Env:config()},
     Config = mas_config:proplist_to_record([{agent_env, ?MODULE} |
-                                            ConfigOptions]),
+      ConfigOptions]),
     io:format("### SimParams ~w~n", [SimParams]),
     io:format("### ConfigRecord: ~w~n", [Config]),
     initialize_exometer(Config),
@@ -43,8 +43,13 @@ start(Time, ConfigOptions) ->
 
     exometer_report:unsubscribe_all(mas_reporter, [global, fitness]),
     exometer:delete([global, fitness]),
+    {Solution, Fitness, Energy} = extract_best(Agents),
+    {Input, _} = Env:config(),
+    emas_genetic:evaluation(Solution, SP#sim_params{extra = {Input, true}}),
+    io:format("Fitness: ~p~n~p~n", [Fitness, Solution]),
+    file:write_file("result/solution", io_lib:fwrite("~p.\n", [Solution])),
+    {Solution, Fitness, Energy}.
 
-    extract_best(Agents).
 
 
 -spec initial_agent(sim_params()) -> agent().
